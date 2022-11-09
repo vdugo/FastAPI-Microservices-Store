@@ -1,7 +1,9 @@
 import os
+import time
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.background import BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from redis_om import get_redis_connection, HashModel
 import requests
@@ -43,7 +45,7 @@ class Order(HashModel):
         database = redis
         
 @app.post('/orders')
-def create(productOrder: ProductOrder):
+def create(productOrder: ProductOrder, background_tasks: BackgroundTasks):
     req = requests.get(f'http://localhost:8000/product/{productOrder.product_id}')
     product = req.json()
     fee = product['price'] * 0.2
@@ -57,7 +59,11 @@ def create(productOrder: ProductOrder):
         status = 'pending'
     )
     
-    return order.save()
+    order.save()
+    
+    background_tasks.add_task(order_complete, order)
+    
+    return order
 
 # get a single order
 @app.get('/orders/{pk}')
@@ -79,4 +85,8 @@ def format(pk: str):
         'quantity': order.quantity,
         'status': order.status
     }
+    
+def order_complete(order: Order):
+    time.sleep(5)
+    order.status = 'completed'
     
