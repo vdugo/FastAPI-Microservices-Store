@@ -58,4 +58,25 @@ def create(productOrder: ProductOrder):
     )
     
     return order.save()
+
+# get a single order
+@app.get('/orders/{pk}')
+def get(pk: str):
+    return format(pk)
+
+# get all the orders
+@app.get('/orders')
+def get_all():
+    return [format(pk) for pk in Order.all_pks()]
+    
+def format(pk: str):
+    order = Order.get(pk)
+    return {
+        'id': order.pk,
+        'product_id': order.product_id,
+        'fee': order.fee,
+        'total': order.total,
+        'quantity': order.quantity,
+        'status': order.status
+    }
     
