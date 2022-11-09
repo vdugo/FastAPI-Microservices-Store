@@ -44,7 +44,7 @@ class Order(HashModel):
         
 @app.post('/orders')
 def create(productOrder: ProductOrder):
-    req = requests.get('http://localhost:8000/product/{productOrder.product_id}')
+    req = requests.get(f'http://localhost:8000/product/{productOrder.product_id}')
     product = req.json()
     fee = product['price'] * 0.2
     
